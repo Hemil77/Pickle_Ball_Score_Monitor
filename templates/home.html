@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥒 PickleScore · courtside counter</title>
+    <!-- Google Font & simple icons via Font Awesome (free) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1e3c2c 0%, #2b5a3a 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            margin: 0;
+        }
+
+        /* main scoreboard card */
+        .scoreboard {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 3.5rem 3.5rem 3rem 3rem;
+            box-shadow: 0 30px 45px -20px rgba(0, 20, 5, 0.6), inset 0 0 0 1px rgba(255, 215, 140, 0.2);
+            padding: 2.2rem 2rem 2.5rem 2rem;
+        }
+
+        /* header: pickleball vibe */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            color: #f8f0dd;
+            padding: 0 0.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.1rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 1.8rem 0.5rem 1.8rem;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 209, 153, 0.3);
+            box-shadow: 0 8px 12px -8px rgba(0,0,0,0.5);
+        }
+
+        .header h1 i {
+            font-size: 2.2rem;
+            color: #f9d77e;
+            filter: drop-shadow(0 2px 3px #7b3f00);
+        }
+
+        .header .court-badge {
+            background: #e7b42c;
+            color: #1e3c1e;
+            font-weight: 700;
+            padding: 0.5rem 1.3rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            border: 2px solid #ffe49e;
+            box-shadow: 0 0 0 2px #2c4b30;
+            letter-spacing: 0.5px;
+        }
+
+        /* add player section */
+        .add-player-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 60px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 215, 140, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .add-player-input {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .add-player-input:focus {
+            outline: none;
+            border-color: #f9d77e;
+            box-shadow: 0 0 0 3px rgba(249, 215, 126, 0.3);
+        }
+
+        .add-player-btn {
+            background: #f9d77e;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.1s ease;
+            color: #1e3c2c;
+            border: 1px solid #ffeda5;
+            box-shadow: 0 4px 0 #b38b40;
+        }
+
+        .add-player-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #b38b40;
+        }
+
+        /* player list grid */
+        .player-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin-bottom: 2rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .player-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .player-grid::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .player-grid::-webkit-scrollbar-thumb {
+            background: rgba(249, 215, 126, 0.5);
+            border-radius: 10px;
+        }
+
+        /* individual player card */
+        .player-row {
+            background: linear-gradient(105deg, #fbf3e0 0%, #f7e9ce 100%);
+            border-radius: 120px 28px 28px 120px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.7rem 0.7rem 0.7rem 1rem;
+            box-shadow: 0 10px 15px -5px rgba(0, 20, 0, 0.6), inset 0 1px 2px rgba(255, 255, 200, 0.8);
+            border: 1px solid #ffdfa0;
+            transition: all 0.15s ease;
+        }
+
+        .player-row:hover {
+            transform: scale(1.01);
+            background: #fff5e2;
+            border-color: #ffb76b;
+            box-shadow: 0 12px 18px -6px #1f3f28;
+        }
+
+        /* left side: name + avatar-ish icon */
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 1;
+        }
+
+        .player-icon {
+            background: #2b6a4d;
+            color: #ffda94;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            border: 2px solid #fec26e;
+            box-shadow: 0 3px 0 #1b4a33;
+            text-shadow: 0 2px 2px #1e3a26;
+            flex-shrink: 0;
+        }
+
+        .player-name-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: 700;
+            font-size: 1.7rem;
+            color: #1f4d2b;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            text-shadow: 0 1px 2px #ffe3aa;
+        }
+
+        .player-name-input {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1f4d2b;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #fec26e;
+            border-radius: 30px;
+            padding: 0.3rem 1rem;
+            width: 100%;
+            max-width: 200px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .player-name-input:focus {
+            outline: none;
+            border-color: #f9d77e;
+            box-shadow: 0 0 0 3px rgba(249, 215, 126, 0.3);
+        }
+
+        .edit-name-btn {
+            background: none;
+            border: none;
+            color: #8b6f40;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0.3rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .edit-name-btn:hover {
+            color: #1f4d2b;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .save-name-btn {
+            background: #2b6a4d;
+            border: none;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* right side: score & plus/minus & delete */
+        .score-panel {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #dccfad;
+            padding: 0.2rem 0.2rem 0.2rem 0.8rem;
+            border-radius: 50px;
+            box-shadow: inset 0 1px 5px #9b8f6e;
+        }
+
+        .score-number {
+            font-size: 2.3rem;
+            font-weight: 800;
+            min-width: 3rem;
+            text-align: center;
+            color: #232d17;
+            background: #fbf3dd;
+            padding: 0.1rem 0.2rem;
+            border-radius: 28px;
+            margin-right: 0.2rem;
+            font-feature-settings: "tnum";
+            border: 1px solid #bda66b;
+            box-shadow: 0 2px 0 #897b4e;
+        }
+
+        .btn-score {
+            background: #fefae0;
+            border: none;
+            width: 52px;
+            height: 52px;
+            font-size: 2rem;
+            font-weight: 600;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s ease;
+            box-shadow: 0 5px 0 #a58f5f, 0 3px 8px rgba(0,0,0,0.3);
+            border: 1px solid #ffd58c;
+            color: #3b6127;
+            line-height: 1;
+        }
+
+        .btn-score.minus {
+            background: #fdd8c4;
+            color: #a1361b;
+            box-shadow: 0 5px 0 #9c623b, 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn-score.delete-player {
+            background: #ffb4b4;
+            color: #8b0000;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            margin-left: 0.3rem;
+            box-shadow: 0 4px 0 #8b4b4b;
+        }
+
+        .btn-score:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #7e623b, 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-score.delete-player:active {
+            box-shadow: 0 1px 0 #8b4b4b;
+        }
+
+        .btn-score i {
+            pointer-events: none;
+            font-size: 1.6rem;
+        }
+
+        .btn-score.delete-player i {
+            font-size: 1.2rem;
+        }
+
+        /* bottom bar */
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1rem 0.5rem 0 0.5rem;
+            border-top: 2px dashed rgba(255, 225, 150, 0.5);
+        }
+
+        .total-score {
+            background: #1f4025;
+            padding: 0.75rem 1.8rem;
+            border-radius: 60px;
+            color: #fdebbc;
+            font-weight: 600;
+            font-size: 1.3rem;
+            border: 1px solid #fac667;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 5px 0 #0f2616;
+        }
+
+        .total-score i {
+            color: #ffbc6e;
+            margin-right: 8px;
+        }
+
+        .reset-btn {
+            background: #d9c49b;
+            border: none;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 0.9rem 2rem;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.1s ease;
+            color: #2b4d2b;
+            border: 1px solid #ffdc97;
+            box-shadow: 0 5px 0 #8f7a4b, 0 4px 10px black;
+        }
+
+        .reset-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #8f7a4b, 0 4px 10px black;
+        }
+
+        .footnote {
+            text-align: right;
+            color: #cedbaf;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            opacity: 0.8;
+        }
+
+        /* mobile fine-tune */
+        @media (max-width: 600px) {
+            .scoreboard { padding: 1.5rem 1rem; }
+            .player-name { font-size: 1.3rem; }
+            .player-icon { width: 38px; height: 38px; font-size: 1.4rem; }
+            .btn-score { width: 44px; height: 44px; font-size: 1.8rem; }
+            .score-number { font-size: 1.8rem; min-width: 2.5rem; }
+            .header h1 { font-size: 1.6rem; }
+            .add-player-section { flex-direction: column; }
+            .add-player-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard">
+        <!-- header -->
+        <div class="header">
+            <h1>
+                <i class="fas fa-table-tennis-paddle-ball"></i> 
+                Dinkers&nbsp;Pickleball
+            </h1>
+            <span class="court-badge"><i class="fas fa-solid fa-circle-nodes"></i> <span id="playerCount">0</span> players</span>
+        </div>
+
+        <!-- ADD PLAYER SECTION -->
+        <div class="add-player-section">
+            <input type="text" id="newPlayerName" class="add-player-input" placeholder="Enter friend's name..." maxlength="20">
+            <button class="add-player-btn" id="addPlayerBtn">
+                <i class="fas fa-plus-circle"></i> Add Player
+            </button>
+        </div>
+
+        <!-- PLAYER LIST -->
+        <div class="player-grid" id="playerGrid">
+            <!-- Players will be added here dynamically via JavaScript -->
+        </div>
+
+        <!-- bottom bar -->
+        <div class="actions">
+            <div class="total-score">
+                <i class="fas fa-solid fa-chart-simple"></i>
+                total points: <span id="totalPoints">0</span>
+            </div>
+            <button class="reset-btn" id="resetAllBtn">
+                <i class="fas fa-rotate-left"></i> new game · zeros
+            </button>
+        </div>
+        <div class="footnote">
+            <i class="fas fa-pickleball"></i> click ✎ to edit names · tap trash to remove
+        </div>
+    </div>
+
+    <script>
+        // Player management functions
+        let nextPlayerId = 1;
+
+        // Function to add a new player
+        document.getElementById('addPlayerBtn').addEventListener('click', function() {
+            const newNameInput = document.getElementById('newPlayerName');
+            const playerName = newNameInput.value.trim();
+            
+            if (playerName === '') {
+                alert('Please enter a name for your friend!');
+                return;
+            }
+
+            addPlayerToList(playerName);
+            newNameInput.value = ''; // Clear input
+        });
+
+        // Function to add player to the list
+        function addPlayerToList(name, score = 0) {
+            const playerGrid = document.getElementById('playerGrid');
+            const playerId = nextPlayerId++;
+            const icons = ['fa-face-smile', 'fa-hand-peace', 'fa-dog', 'fa-cat', 'fa-tree', 'fa-star'];
+            const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+
+            const newPlayerRow = document.createElement('div');
+            newPlayerRow.className = 'player-row';
+            newPlayerRow.dataset.playerId = playerId;
+            newPlayerRow.dataset.playerName = name;
+            newPlayerRow.dataset.score = score;
+
+            newPlayerRow.innerHTML = `
+                <div class="player-info">
+                    <div class="player-icon">
+                        <i class="fas ${randomIcon}"></i>
+                    </div>
+                    <div class="player-name-container">
+                        <span class="player-name" id="name-${playerId}">${name}</span>
+                        <button class="edit-name-btn" onclick="editName(${playerId})" title="Edit name">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <div class="score-panel">
+                        <span class="score-number" id="score-${playerId}">${score}</span>
+                        <button class="btn-score plus" data-id="${playerId}" data-delta="1">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn-score minus" data-id="${playerId}" data-delta="-1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                    <button class="btn-score delete-player" onclick="deletePlayer(${playerId})" title="Remove player">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+
+            playerGrid.appendChild(newPlayerRow);
+            updatePlayerCount();
+            updateTotal();
+        }
+
+        // Function to edit player name
+        window.editName = function(playerId) {
+            const nameSpan = document.getElementById(`name-${playerId}`);
+            const currentName = nameSpan.textContent;
+            const playerRow = nameSpan.closest('.player-row');
+            const nameContainer = nameSpan.parentElement;
+
+            // Create input field
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'player-name-input';
+            input.maxLength = 20;
+
+            // Create save button
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'save-name-btn';
+            saveBtn.innerHTML = 'Save';
+            
+            // Clear container and add input + save button
+            nameContainer.innerHTML = '';
+            nameContainer.appendChild(input);
+            nameContainer.appendChild(saveBtn);
+            
+            // Focus input
+            input.focus();
+            
+            // Save on button click
+            saveBtn.addEventListener('click', function() {
+                const newName = input.value.trim();
+                if (newName !== '') {
+                    nameContainer.innerHTML = `
+                        <span class="player-name" id="name-${playerId}">${newName}</span>
+                        <button class="edit-name-btn" onclick="editName(${playerId})" title="Edit name">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    `;
+                    playerRow.dataset.playerName = newName;
+                } else {
+                    // Revert if empty
+                    nameContainer.innerHTML = `
+                        <span class="player-name" id="name-${playerId}">${currentName}</span>
+                        <button class="edit-name-btn" onclick="editName(${playerId})" title="Edit name">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    `;
+                }
+            });
+
+            // Save on Enter key
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveBtn.click();
+                }
+            });
+
+            // Cancel on Escape
+            input.addEventListener('keyup', function(e) {
+                if (e.key === 'Escape') {
+                    nameContainer.innerHTML = `
+                        <span class="player-name" id="name-${playerId}">${currentName}</span>
+                        <button class="edit-name-btn" onclick="editName(${playerId})" title="Edit name">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    `;
+                }
+            });
+        };
+
+        // Function to delete player
+        window.deletePlayer = function(playerId) {
+            if (confirm('Are you sure you want to remove this player?')) {
+                const playerRow = document.querySelector(`.player-row[data-player-id="${playerId}"]`);
+                if (playerRow) {
+                    playerRow.remove();
+                    updatePlayerCount();
+                    updateTotal();
+                }
+            }
+        };
+
+        // Update player count display
+        function updatePlayerCount() {
+            const count = document.querySelectorAll('.player-row').length;
+            document.getElementById('playerCount').textContent = count;
+        }
+
+        // Score management
+        const playerGrid = document.getElementById('playerGrid');
+        const totalSpan = document.getElementById('totalPoints');
+
+        function updateTotal() {
+            const scoreSpans = document.querySelectorAll('.score-number');
+            let total = 0;
+            scoreSpans.forEach(span => {
+                let val = parseInt(span.innerText, 10);
+                if (isNaN(val)) val = 0;
+                total += val;
+            });
+            totalSpan.innerText = total;
+        }
+
+        // Event delegation for +/- buttons
+        playerGrid.addEventListener('click', function(ev) {
+            const btn = ev.target.closest('.btn-score');
+            if (!btn) return;
+            
+            // Don't handle delete button here
+            if (btn.classList.contains('delete-player')) return;
+
+            const playerRow = btn.closest('.player-row');
+            if (!playerRow) return;
+
+            const scoreSpan = playerRow.querySelector('.score-number');
+            if (!scoreSpan) return;
+
+            const delta = btn.classList.contains('plus') ? 1 : (btn.classList.contains('minus') ? -1 : 0);
+            if (delta === 0) return;
+
+            let currentScore = parseInt(scoreSpan.innerText, 10);
+            if (isNaN(currentScore)) currentScore = 0;
+            let newScore = currentScore + delta;
+            if (newScore < 0) newScore = 0;
+            scoreSpan.innerText = newScore;
+            playerRow.dataset.score = newScore;
+
+            updateTotal();
+        });
+
+        // Reset all scores
+        document.getElementById('resetAllBtn').addEventListener('click', function() {
+            const scoreSpans = document.querySelectorAll('.score-number');
+            scoreSpans.forEach(span => {
+                span.innerText = '0';
+                const row = span.closest('.player-row');
+                if (row) row.dataset.score = '0';
+            });
+            updateTotal();
+        });
+
+        // Allow Enter key in add player input
+        document.getElementById('newPlayerName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('addPlayerBtn').click();
+            }
+        });
+
+        // Add some initial players (you can remove this or keep it)
+        window.onload = function() {
+            // Add 6 default players
+            const defaultPlayers = ['Ollie', 'Max', 'Sam', 'Jordan', 'Casey', 'Riley'];
+            defaultPlayers.forEach(name => addPlayerToList(name, Math.floor(Math.random() * 15)));
+        };
+    </script>
+</body>
+</html>
